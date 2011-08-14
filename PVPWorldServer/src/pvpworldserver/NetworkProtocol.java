@@ -8,7 +8,6 @@ public class NetworkProtocol
 	public static final byte GAME_INFO_HEARTBEAT = 0;//UDP 
 	public static final byte GAME_INFO_LOGIN = 1;//TCP VAR LENGTH
 	public static final byte GAME_INFO_LOGOUT = 2;//UDP
-	public static final byte GAME_INFO_MAP_REQUEST = 3;//TCP
 
 public static final byte GAME_LOOKUP = 2;
 	public static final byte GAME_LOOKUP_PLAYER_ID = 0;//UDP
@@ -17,6 +16,7 @@ public static final byte GAME_LOOKUP = 2;
 	public static final byte GAME_LOOKUP_CHARACTER_NAME = 3;//UDP
 	public static final byte GAME_LOOKUP_MAP_ID = 4;//UDP
 	public static final byte GAME_LOOKUP_MAP_NAME = 5;//UDP
+	public static final byte GAME_LOOKUP_MAP_REQUEST = 6;//TCP
 
 public static final byte GAME_UPDATE = 3;
 	public static final byte GAME_UPDATE_PHYSICS = 0;//UDP

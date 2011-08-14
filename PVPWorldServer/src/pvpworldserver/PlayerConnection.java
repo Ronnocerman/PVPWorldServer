@@ -101,4 +101,20 @@ public class PlayerConnection
 			testDataLength();
 		}
 	}
+	public boolean hasNextCommand()
+	{
+		if(commands.size()>0)
+		{
+			return true;
+		}
+		return false;
+	}
+	public Command nextCommand()
+	{
+		if(commands.size()>0)
+		{
+			return commands.remove(0);
+		}
+		return null;
+	}
 }

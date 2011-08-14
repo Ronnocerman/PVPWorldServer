@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import static pvpworldserver.NetworkProtocol.*;
 
 
 public class Driver 
@@ -19,6 +20,8 @@ public class Driver
 	
 	public static void main(String[]args)
 	{
+		setupConnections();
+		serverLoop();
 	}
 	public static void setupConnections()
 	{
@@ -43,37 +46,12 @@ public class Driver
 			checkTCPConnections();
 			//sendUDPResponses();
 			//sendTCPResponses();
-			ByteBuffer b = ByteBuffer.allocate(65536);
-			b.clear();
-			if(clientChannel!=null)
-				try {
-					if(clientChannel.read(b) != -1)
-					{
-						for(int i = 0; i<b.array().length;i++)
-						{
-							if(b.array()[i]!=0)
-							System.out.println(b.array()[i]);
-						}
-					}
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			if(clientChannel==null)
+			checkCommands();
 			try 
 			{
-				clientChannel = serverChannel.accept();
-				if(clientChannel != null)
-				{
-					System.out.println("Client Accepted");
-				}
+				Thread.sleep(50);
 			}
-			catch (IOException e) 
+			catch (InterruptedException e)
 			{
 				e.printStackTrace();
 			}
@@ -123,6 +101,7 @@ public class Driver
 			}
 		}
 	}
+	
 	public static void checkTCPConnections()
 	{
 		for(int i = 0;i<playerConnections.size();i++)
@@ -145,8 +124,52 @@ public class Driver
 			if(b.array().length > 0)
 			{
 				playerConnections.get(i).addData(b.array());
-				completeTCPCommand(playerConnections.addCommand());
 			}
 		}
+	}
+	public static void checkCommands()
+	{
+		for(int i = 0; i<playerConnections.size();i++)
+		{
+			if(playerConnections.get(i).hasNextCommand())
+			{
+				processCommand(playerConnections.get(i).nextCommand(),playerConnections.get(i));
+			}
+		}
+	}
+	public static void processCommand(Command c,PlayerConnection pc)
+	{
+		byte commandType = c.getCommandType();
+		
+		if(commandType == GAME_INFO)
+		{
+			switch(c.getCommandSpecific())
+			{
+			case GAME_INFO_HEARTBEAT: GameInfo.processHeartbeat(c,pc);
+			case GAME_INFO_LOGIN: GameInfo.processLogin(c,pc);
+			case GAME_INFO_LOGOUT: GameInfo.processLogout(c,pc);
+			}
+		}
+		if(commandType ==GAME_LOOKUP)
+		{
+			switch(c.getCommandSpecific())
+			{
+			case GAME_LOOKUP_PLAYER_ID: GameLookup.lookupPlayerID(c,pc);break;
+			case GAME_LOOKUP_PLAYER_NAME: GameLookup.lookupPlayerName(c,pc);break;
+			case GAME_LOOKUP_CHARACTER_ID: GameLookup.lookupCharacterID(c,pc);break;
+			case GAME_LOOKUP_CHARACTER_NAME: GameLookup.lookupCharacterName(c,pc);break;
+			case GAME_LOOKUP_MAP_ID: GameLookup.lookupMapID(c,pc);break;
+			case GAME_LOOKUP_MAP_NAME: GameLookup.lookupMapName(c,pc);break;
+			case GAME_LOOKUP_MAP_REQUEST: GameLookup.lookupMap(c,pc);break;
+			}
+		}
+		if(commandType == GAME_UPDATE)
+		{
+			switch(c.getCommandSpecific())
+			{
+			case GAME_UPDATE_PHYSICS: GameUpdate.updatePhysics(c,pc);break;
+			}
+		}
+		
 	}
 }

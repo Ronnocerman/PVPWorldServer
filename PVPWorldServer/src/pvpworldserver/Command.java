@@ -2,9 +2,9 @@ package pvpworldserver;
 
 public class Command 
 {
-	byte commandType;
-	byte commandSpecific;
-	byte[] body;
+	private byte commandType;
+	private byte commandSpecific;
+	private byte[] body;
 	public Command(byte[] data)
 	{
 		commandType = data[0];
@@ -14,5 +14,13 @@ public class Command
 		{
 			body[i-4] = data[i];
 		}
+	}
+	public byte getCommandType()
+	{
+		return commandType;
+	}
+	public byte getCommandSpecific()
+	{
+		return commandSpecific;
 	}
 }
