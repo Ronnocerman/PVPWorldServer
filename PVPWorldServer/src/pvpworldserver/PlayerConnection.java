@@ -7,23 +7,38 @@ import java.util.ArrayList;
 
 public class PlayerConnection 
 {
-	private int id;
+	private int playerID;
+	private Character loggedCharacter;
 	private SocketChannel connection;
 	private Date timeCreated;
-	private byte[] incompleteSend;
-	ArrayList<Command> commands = new ArrayList<Command>();
+	private byte[] incompleteSend = new byte[0];
+	private ArrayList<Command> commands = new ArrayList<Command>();
 	public PlayerConnection(SocketChannel connection)
 	{
 		this.connection = connection;
+		try {
+			connection.configureBlocking(false);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		timeCreated = new Date(System.currentTimeMillis());
 	}
-	public void setID(int id)
+	public void setPlayerID(int id)
 	{
-		this.id = id;
+		this.playerID = id;
 	}
-	public int getID()
+	public int getPlayerID()
 	{
-		return id;
+		return playerID;
+	}
+	public void setCharacterID(int id)
+	{
+		this.characterID = id;
+	}
+	public int getCharacterID()
+	{
+		return characterID;
 	}
 	public boolean finishConnect()
 	{
@@ -40,13 +55,16 @@ public class PlayerConnection
 	{
 		return timeCreated.getTime();
 	}
-	public void read(ByteBuffer b) throws IOException
+	public int read(ByteBuffer b) throws IOException
 	{
-		connection.read(b);
+		return connection.read(b);
 	}
 	public void addData(byte[] data)
 	{
 		byte[] temp = incompleteSend;
+		assert temp!= null;
+		assert data !=null;
+		
 		incompleteSend = new byte[temp.length + data.length];
 		for(int i = 0;i<incompleteSend.length;i++)
 		{
@@ -79,8 +97,40 @@ public class PlayerConnection
 	}*/
 	public void testDataLength()
 	{
+		if(connection.isConnected())
+		System.out.println("Length: " + incompleteSend.length);
+		else
+		{
+			System.out.println("Not Connected");
+		}
+		int index;
+		for(index = 0; index<incompleteSend.length;index++)
+		{
+			if(incompleteSend[index]==0)
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+		if(index==incompleteSend.length)
+		{
+			incompleteSend = new byte[0];
+			return;
+		}
+		else
+		{
+			byte[] temp = new byte[incompleteSend.length-index];
+			for(int i = index;index<incompleteSend.length;index++)
+			{
+				temp[index-i] = incompleteSend[index];
+			}
+		}
 		if(incompleteSend.length<4)
 			return;
+			
 		byte[] testSize = new byte[2];
 		testSize[0] = incompleteSend[2];
 		testSize[1] = incompleteSend[3];

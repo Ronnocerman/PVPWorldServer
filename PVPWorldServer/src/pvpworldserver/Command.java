@@ -23,4 +23,11 @@ public class Command
 	{
 		return commandSpecific;
 	}
+	public byte[] getCommandBody()
+	{
+		byte[] output = new byte[body.length];
+		for(int i = 0;i<body.length;i++)
+			output[i] = body[i];
+		return output;
+	}
 }

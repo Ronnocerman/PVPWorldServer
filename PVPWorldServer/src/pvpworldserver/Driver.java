@@ -64,14 +64,18 @@ public class Driver
 		for(boolean finished = false;!finished;)
 		{
 			SocketChannel attemptedConnection = null;
-			try {
+			try
+			{
 				attemptedConnection = serverChannel.accept();
-			} catch (IOException e) {
+			}
+			catch (IOException e)
+			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if(attemptedConnection!=null)
 			{
+				System.out.println("Attempted Connection");
 				attemptedConnections.add(new PlayerConnection(attemptedConnection));
 				continue;
 			}
@@ -89,6 +93,7 @@ public class Driver
 			{
 				playerConnections.add(attemptedConnections.remove(i));
 				--i;
+				System.out.println("Connection Accepted");
 			}
 			else
 			{
@@ -109,21 +114,35 @@ public class Driver
 			//Create ByteBuffer
 			ByteBuffer b = ByteBuffer.allocate(65536);
 			b.clear();
-			
 			//Read from Player Connection, if error, remove connection
 			try
 			{
-				playerConnections.get(i).read(b);
+				int bytesRead = playerConnections.get(i).read(b);
+				if(bytesRead == 0)
+					continue;
+				if(bytesRead==-1)
+				{
+					//Removes player from connections if disconnected.
+					playerConnections.remove(i);
+					--i;
+					continue;
+				}
+				if(b.array().length > 0)
+				{
+					//Trims info to the bytes which are actually read.
+					byte[] info = new byte[bytesRead];
+					for(int x = 0;x<bytesRead;x++)
+					{
+						info[x] = b.array()[x];
+					}
+					playerConnections.get(i).addData(info);
+				}
 			}
 			catch(IOException e)
 			{
 				playerConnections.remove(i);
 				--i;
 				continue;
-			}
-			if(b.array().length > 0)
-			{
-				playerConnections.get(i).addData(b.array());
 			}
 		}
 	}
@@ -140,27 +159,27 @@ public class Driver
 	public static void processCommand(Command c,PlayerConnection pc)
 	{
 		byte commandType = c.getCommandType();
-		
+		System.out.println("Command Type: " + commandType);
 		if(commandType == GAME_INFO)
 		{
 			switch(c.getCommandSpecific())
 			{
-			case GAME_INFO_HEARTBEAT: GameInfo.processHeartbeat(c,pc);
+			//case GAME_INFO_HEARTBEAT: GameInfo.processHeartbeat(c,pc);
 			case GAME_INFO_LOGIN: GameInfo.processLogin(c,pc);
-			case GAME_INFO_LOGOUT: GameInfo.processLogout(c,pc);
+			//case GAME_INFO_LOGOUT: GameInfo.processLogout(c,pc);
 			}
 		}
 		if(commandType ==GAME_LOOKUP)
 		{
 			switch(c.getCommandSpecific())
 			{
-			case GAME_LOOKUP_PLAYER_ID: GameLookup.lookupPlayerID(c,pc);break;
-			case GAME_LOOKUP_PLAYER_NAME: GameLookup.lookupPlayerName(c,pc);break;
-			case GAME_LOOKUP_CHARACTER_ID: GameLookup.lookupCharacterID(c,pc);break;
-			case GAME_LOOKUP_CHARACTER_NAME: GameLookup.lookupCharacterName(c,pc);break;
-			case GAME_LOOKUP_MAP_ID: GameLookup.lookupMapID(c,pc);break;
-			case GAME_LOOKUP_MAP_NAME: GameLookup.lookupMapName(c,pc);break;
-			case GAME_LOOKUP_MAP_REQUEST: GameLookup.lookupMap(c,pc);break;
+			//case GAME_LOOKUP_PLAYER_ID: GameLookup.lookupPlayerID(c,pc);break;
+			//case GAME_LOOKUP_PLAYER_NAME: GameLookup.lookupPlayerName(c,pc);break;
+			//case GAME_LOOKUP_CHARACTER_ID: GameLookup.lookupCharacterID(c,pc);break;
+			//case GAME_LOOKUP_CHARACTER_NAME: GameLookup.lookupCharacterName(c,pc);break;
+			//case GAME_LOOKUP_MAP_ID: GameLookup.lookupMapID(c,pc);break;
+			//case GAME_LOOKUP_MAP_NAME: GameLookup.lookupMapName(c,pc);break;
+			//case GAME_LOOKUP_MAP_REQUEST: GameLookup.lookupMap(c,pc);break;
 			}
 		}
 		if(commandType == GAME_UPDATE)
@@ -168,8 +187,30 @@ public class Driver
 			switch(c.getCommandSpecific())
 			{
 			case GAME_UPDATE_PHYSICS: GameUpdate.updatePhysics(c,pc);break;
+			//case GAME_UPDATE_BASE_STATS: GameUpdate.updateBaseStats(c,pc);break;
+			//case GAME_UPDATE_DERIVED_STATS: GameUpdate.updateDerivedStats(c,pc);break;
+			//case GAME_UPDATE_PLAYER_INFO: GameUpdate.updatePlayerInfo(c,pc);break;
+			//case GAME_UPDATE_QUEST: GameUpdate.updateQuest(c,pc);
+			//case GAME_UPDATE_CREATURE: GameUpdate.updateCreature(c,pc);
+			//case GAME_UPDATE_SCRIPT: GameUpdate.updateScript(c,pc);
+			//case GAME_UPDATE_BUFFS: GameUpdate.updateBuffs(c,pc);
+			}
+		}
+		if(commandType == GAME_ITEM)
+		{
+			switch(c.getCommandSpecific())
+			{
+			
 			}
 		}
 		
+	}
+	public static boolean validatePlayerForConnection(int characterID,PlayerConnection pc)
+	{
+		if(pc.getCharacterID()==characterID)
+		{
+			return true;
+		}
+		return false;
 	}
 }

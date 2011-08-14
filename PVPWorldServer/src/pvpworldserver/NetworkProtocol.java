@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 public class NetworkProtocol 
 {
-	public static final byte GAME_INFO = 1;
+public static final byte GAME_INFO = 1;
 	public static final byte GAME_INFO_HEARTBEAT = 0;//UDP 
 	public static final byte GAME_INFO_LOGIN = 1;//TCP VAR LENGTH
 	public static final byte GAME_INFO_LOGOUT = 2;//UDP
@@ -115,5 +115,12 @@ public static final byte GAME_REPORT = 9;
 		b.put(input[0]);
 		b.put(input[1]);
 		return unsignedShortToSignedInt(b.getShort(0));
+	}
+	public static byte[] shortToTwoBytes(short input)
+	{
+		byte[] output = new byte[2];
+		output[0] = (byte) ((input-(input%256))/256);
+		output[1] = (byte) (input%256);
+		return output;
 	}
 }
