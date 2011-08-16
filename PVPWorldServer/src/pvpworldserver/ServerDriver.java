@@ -6,11 +6,16 @@ import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import static pvpworldserver.NetworkProtocol.*;
 
 
-public class Driver 
+public class ServerDriver
 {
 	static ServerSocketChannel serverChannel = null;
 	static ArrayList<PlayerConnection> playerConnections = new ArrayList<PlayerConnection>();
@@ -25,6 +30,45 @@ public class Driver
 	}
 	public static void setupConnections()
 	{
+		try 
+		{
+			Class.forName("com.mysql.jdbc.Driver");
+			String databaseURL = "jdbc:mysql://localhost:3306/PVPWorld";
+			Statement stmnt;
+			 Connection con =
+					 DriverManager.getConnection(
+					 databaseURL,"PVPWorldServer", "WarePhant8");
+			 stmnt = con.createStatement(); 
+			 stmnt.executeUpdate("CREATE TABLE myTable(test_id int,test_val char(15) not null)");
+			 stmnt.executeUpdate("INSERT INTO myTable(test_id, test_val) VALUES(1,'One')");
+			 stmnt.executeUpdate(
+					 "INSERT INTO myTable(test_id, test_val) VALUES(2,'Two')");
+			 stmnt.executeUpdate(
+					 "INSERT INTO myTable(test_id, test_val) VALUES(3,'Three')");
+			 stmnt.executeUpdate(
+					 "INSERT INTO myTable(test_id, test_val) VALUES(4,'Four')");
+			 stmnt.executeUpdate(
+					 "INSERT INTO myTable(test_id, test_val) VALUES(5,'Five')");
+			 stmnt = con.createStatement(
+					 ResultSet.TYPE_SCROLL_INSENSITIVE,
+					 ResultSet.CONCUR_READ_ONLY);
+			 ResultSet rs = stmnt.executeQuery("SELECT * from myTable ORDER BY test_id");
+			 System.out.println("Display all results:");
+			 while(rs.next()){
+			 int theInt= rs.getInt("test_id");
+			 String str = rs.getString("test_val");
+			 System.out.println("\ttest_id= " + theInt
+			 + "\tstr = " + str);
+			 }//end while loop
+		}
+		catch (ClassNotFoundException e1)
+		{
+			e1.printStackTrace();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
 		try 
 		{
 			serverChannel = ServerSocketChannel.open();
@@ -70,7 +114,6 @@ public class Driver
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if(attemptedConnection!=null)
