@@ -19,4 +19,12 @@ public class Character
 		this.acceleration = acceleration;
 		this.inventory = inventory;
 	}
+	public int getID()
+	{
+		return id;
+	}
+	public void setID(int id)
+	{
+		this.id = id;
+	}
 }

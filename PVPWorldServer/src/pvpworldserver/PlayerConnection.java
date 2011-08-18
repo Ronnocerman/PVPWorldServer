@@ -34,11 +34,11 @@ public class PlayerConnection
 	}
 	public void setCharacterID(int id)
 	{
-		this.characterID = id;
+		loggedCharacter.setID(id);
 	}
 	public int getCharacterID()
 	{
-		return characterID;
+		return loggedCharacter.getID();
 	}
 	public boolean finishConnect()
 	{

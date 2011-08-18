@@ -27,7 +27,7 @@ public class GameUpdate
 		b.put(parseArray[5]);
 		b.put(parseArray[6]);
 		b.put(parseArray[7]);
-		Driver.validatePlayerForConnection(b.getInt(), pc);
+		ServerDriver.validatePlayerForConnection(b.getInt(), pc);
 		b = ByteBuffer.allocate(4);
 		b.put(parseArray[8]);
 		b.put(parseArray[9]);

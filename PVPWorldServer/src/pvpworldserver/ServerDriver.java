@@ -22,6 +22,7 @@ public class ServerDriver
 	static ArrayList<PlayerConnection> attemptedConnections = new ArrayList<PlayerConnection>();
 	static SocketChannel clientChannel = null;
 	static ServerSocket ss = null;
+	static Connection databaseConnection;
 	
 	public static void main(String[]args)
 	{
@@ -34,40 +35,30 @@ public class ServerDriver
 		{
 			Class.forName("com.mysql.jdbc.Driver");
 			String databaseURL = "jdbc:mysql://localhost:3306/PVPWorld";
-			Statement stmnt;
-			 Connection con =
-					 DriverManager.getConnection(
-					 databaseURL,"PVPWorldServer", "WarePhant8");
-			 stmnt = con.createStatement(); 
-			 stmnt.executeUpdate("CREATE TABLE myTable(test_id int,test_val char(15) not null)");
-			 stmnt.executeUpdate("INSERT INTO myTable(test_id, test_val) VALUES(1,'One')");
-			 stmnt.executeUpdate(
-					 "INSERT INTO myTable(test_id, test_val) VALUES(2,'Two')");
-			 stmnt.executeUpdate(
-					 "INSERT INTO myTable(test_id, test_val) VALUES(3,'Three')");
-			 stmnt.executeUpdate(
-					 "INSERT INTO myTable(test_id, test_val) VALUES(4,'Four')");
-			 stmnt.executeUpdate(
-					 "INSERT INTO myTable(test_id, test_val) VALUES(5,'Five')");
-			 stmnt = con.createStatement(
-					 ResultSet.TYPE_SCROLL_INSENSITIVE,
-					 ResultSet.CONCUR_READ_ONLY);
-			 ResultSet rs = stmnt.executeQuery("SELECT * from myTable ORDER BY test_id");
-			 System.out.println("Display all results:");
-			 while(rs.next()){
-			 int theInt= rs.getInt("test_id");
-			 String str = rs.getString("test_val");
-			 System.out.println("\ttest_id= " + theInt
-			 + "\tstr = " + str);
-			 }//end while loop
+			//Statement stmnt;
+			databaseConnection =DriverManager.getConnection(databaseURL,"PVPWorldServer", "WarePhant8");
+			 //stmnt = con.createStatement(); 
+			 //stmnt.executeUpdate("CREATE TABLE myTable(test_id int,test_val char(15) not null)");
+			 //stmnt.executeUpdate("INSERT INTO myTable(test_id, test_val) VALUES(1,'One')");
+			 //stmnt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+			 //ResultSet rs = stmnt.executeQuery("SELECT * from myTable ORDER BY test_id");
+			 //System.out.println("Display all results:");
+			 //while(rs.next()){
+			 //int theInt= rs.getInt("test_id");
+			 //String str = rs.getString("test_val");
+			 //System.out.println("\ttest_id= " + theInt
+			 //+ "\tstr = " + str);
+			 //}//end while loop
 		}
 		catch (ClassNotFoundException e1)
 		{
 			e1.printStackTrace();
+			System.exit(1);
 		}
 		catch (SQLException e)
 		{
 			e.printStackTrace();
+			System.exit(1);
 		}
 		try 
 		{
@@ -79,6 +70,7 @@ public class ServerDriver
 		catch (IOException e) 
 		{
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 	public static void serverLoop()
