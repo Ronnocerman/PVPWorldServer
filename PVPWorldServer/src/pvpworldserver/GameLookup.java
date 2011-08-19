@@ -11,12 +11,14 @@ public class GameLookup
 		Statement readID;
 		try {
 			readID = ServerDriver.databaseConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = readID.executeQuery("SELECT * from username WHERE userName = " + accountName);
+			ResultSet rs = readID.executeQuery("SELECT * from username WHERE userName = '" + accountName + "';");
+			rs.next();
 			return rs.getInt("userID");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			System.out.print("Exception");
 			e.printStackTrace();
 		}
+		System.out.println("Wrong Value");
 		return -1;
 	}
 }

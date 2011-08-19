@@ -17,7 +17,8 @@ public class GameInfo
 			}
 			String accountName = new String(accountNameBytes);
 			Statement readLogin = ServerDriver.databaseConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = readLogin.executeQuery("SELECT * from userpasswords ORDER BY userID WHERE userID = " + GameLookup.lookupAccountID(accountName));
+			ResultSet rs = readLogin.executeQuery("SELECT * from userpasswords WHERE userID = " + GameLookup.lookupAccountID(accountName) + ";");
+			rs.next();
 			byte[] retrievedPassword = rs.getBytes("encryptedpassword");
 			for(int i = 0;i<retrievedPassword.length;i++)
 			{
@@ -27,9 +28,11 @@ public class GameInfo
 				}
 				else
 				{
+					System.out.println("REJECTED!");
 					return false;
 				}
 			}
+			System.out.println("Confirmed");
 			return true;
 		}
 		catch (SQLException e) 
