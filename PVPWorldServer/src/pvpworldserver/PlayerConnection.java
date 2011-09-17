@@ -1,6 +1,7 @@
 package pvpworldserver;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -9,20 +10,46 @@ public class PlayerConnection
 {
 	private int playerID;
 	private Character loggedCharacter;
-	private SocketChannel connection;
+	private SocketChannel TCPConnection = null;
+	private DatagramChannel UDPConnection = null;
 	private Date timeCreated;
 	private byte[] incompleteSend = new byte[0];
 	private ArrayList<Command> commands = new ArrayList<Command>();
-	public PlayerConnection(SocketChannel connection)
+	public PlayerConnection(SocketChannel TCPConnection)
 	{
-		this.connection = connection;
-		try {
-			connection.configureBlocking(false);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		this.TCPConnection = TCPConnection;
+		try 
+		{
+			TCPConnection.configureBlocking(false);
+		}
+		catch (IOException e) 
+		{
 			e.printStackTrace();
 		}
 		timeCreated = new Date(System.currentTimeMillis());
+	}
+	public PlayerConnection(DatagramChannel UDPConnection)
+	{
+		this.UDPConnection = UDPConnection;
+		try 
+		{
+			UDPConnection.configureBlocking(false);
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		timeCreated = new Date(System.currentTimeMillis());
+	}
+	public void setTCPConnection(SocketChannel TCPConnection)
+	{
+		if(this.TCPConnection == null)
+		this.TCPConnection = TCPConnection;
+	}
+	public void setUDPConnection(DatagramChannel UDPConnection)
+	{
+		if(this.UDPConnection == null)
+		this.UDPConnection = UDPConnection;
 	}
 	public void setPlayerID(int id)
 	{
@@ -44,9 +71,13 @@ public class PlayerConnection
 	{
 		try 
 		{
-			return connection.finishConnect();
+			return TCPConnection.finishConnect();
 		} 
 		catch (IOException e) 
+		{
+			return false;
+		}
+		catch (NullPointerException e)
 		{
 			return false;
 		}
@@ -57,7 +88,7 @@ public class PlayerConnection
 	}
 	public int read(ByteBuffer b) throws IOException
 	{
-		return connection.read(b);
+		return TCPConnection.read(b);
 	}
 	public void addData(byte[] data)
 	{
@@ -97,7 +128,7 @@ public class PlayerConnection
 	}*/
 	public void testDataLength()
 	{
-		if(connection.isConnected())
+		if(TCPConnection.isConnected())
 		System.out.println("Length: " + incompleteSend.length);
 		else
 		{
@@ -167,4 +198,23 @@ public class PlayerConnection
 		}
 		return null;
 	}
+	public boolean hasTCPConnection()
+	{
+		if(TCPConnection!=null)
+			return true;
+		return false;
+	}
+	public boolean hasUDPConnection()
+	{
+		if(UDPConnection!=null)
+			return true;
+		return false;
+	}
+	/*public String getIP()
+	{
+		if(UDPConnection!=null)
+		{
+			return UDPConnection.
+		}
+	}*/
 }

@@ -1,23 +1,28 @@
 package pvpworldserver;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import static pvpworldserver.NetworkProtocol.*;
 
 
 public class ServerDriver
 {
-	static ServerSocketChannel serverChannel = null;
+	static ServerSocketChannel serverTCPChannel = null;
+	private static DatagramChannel serverUDPConChannel = null;
+	static DatagramChannel serverUDPChannel = null;
+	static DatagramSocket serverUDPConSocket = null;
 	static ArrayList<PlayerConnection> playerConnections = new ArrayList<PlayerConnection>();
 	static ArrayList<PlayerConnection> attemptedConnections = new ArrayList<PlayerConnection>();
 	static SocketChannel clientChannel = null;
@@ -62,12 +67,26 @@ public class ServerDriver
 		}
 		try 
 		{
-			serverChannel = ServerSocketChannel.open();
-			serverChannel.configureBlocking(false);
-			ss = serverChannel.socket();
+			serverTCPChannel = ServerSocketChannel.open();
+			serverTCPChannel.configureBlocking(false);
+			ss = serverTCPChannel.socket();
 			ss.bind(new InetSocketAddress(5472));
 		} 
 		catch (IOException e) 
+		{
+			e.printStackTrace();
+			System.exit(1);
+		}
+		try
+		{
+			serverUDPConChannel = DatagramChannel.open();
+			//serverUDPChannel = DatagramChannel.open();
+			serverUDPConChannel.configureBlocking(false);
+			//serverUDPChannel.configureBlocking(false);
+			serverUDPConChannel.socket().bind(new InetSocketAddress(5472));
+			serverUDPConChannel.connect(new InetSocketAddress("localhost",5473));
+		} 
+		catch (IOException e)
 		{
 			e.printStackTrace();
 			System.exit(1);
@@ -95,14 +114,19 @@ public class ServerDriver
 	}
 	public static void checkForNewConnections()
 	{
-		
+		checkForNewTCPConnections();
+		checkForNewUDPConnections();
+		finalizeConnections();
+	}
+	public static void checkForNewTCPConnections()
+	{
 		//Checks for new connections
-		for(boolean finished = false;!finished;)
+		while(true)
 		{
 			SocketChannel attemptedConnection = null;
 			try
 			{
-				attemptedConnection = serverChannel.accept();
+				attemptedConnection = serverTCPChannel.accept();
 			}
 			catch (IOException e)
 			{
@@ -116,19 +140,55 @@ public class ServerDriver
 			}
 			else
 			{
-				finished = true;
+				break;
 			}
 		}
 		
-		//Finalizes found connections
-
+	}
+	public static void checkForNewUDPConnections()
+	{
+		SocketAddress connection = null;
+		ByteBuffer bb = ByteBuffer.allocate(65507);
+		bb.clear();
+		try 
+		{
+			connection = serverUDPConChannel.receive(bb);
+			System.out.println(connection==null);
+			while(connection!=null)
+			{
+				System.out.println("Not null");
+				for(int i = 0; i<attemptedConnections.size();i++)
+				{
+					System.out.println(attemptedConnections.get(i).toString());
+					System.out.println(connection.toString());
+					if(attemptedConnections.get(i).toString().equals(connection.toString()))
+					{
+						DatagramChannel d = DatagramChannel.open();
+						d.connect(connection);
+						attemptedConnections.get(i).setUDPConnection(d);
+					}
+				}
+				bb.clear();
+				connection = serverUDPConChannel.receive(bb);
+			}
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	public static void finalizeConnections()
+	{
 		for(int i = 0;i<attemptedConnections.size();i++)
 		{
 			if(attemptedConnections.get(i).finishConnect())
 			{
-				playerConnections.add(attemptedConnections.remove(i));
-				--i;
-				System.out.println("Connection Accepted");
+				if(attemptedConnections.get(i).hasUDPConnection())
+				{
+					playerConnections.add(attemptedConnections.remove(i));
+					--i;
+					System.out.println("Connection Accepted");
+				}
 			}
 			else
 			{
