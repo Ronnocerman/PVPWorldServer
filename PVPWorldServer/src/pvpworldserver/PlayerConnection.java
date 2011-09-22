@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 
 public class PlayerConnection 
@@ -11,8 +11,13 @@ public class PlayerConnection
 	private int playerID;
 	private Character loggedCharacter;
 	private SocketChannel TCPConnection = null;
+	private String TCPConnectionIP = "";
+	private int TCPConnectionPort = 0;
 	private DatagramChannel UDPConnection = null;
+	private String UDPConnectionIP = "";
+	private int UDPConnectionPort = 0;
 	private Date timeCreated;
+	private long lastUDPMessage;
 	private byte[] incompleteSend = new byte[0];
 	private ArrayList<Command> commands = new ArrayList<Command>();
 	public PlayerConnection(SocketChannel TCPConnection)
@@ -40,6 +45,10 @@ public class PlayerConnection
 			e.printStackTrace();
 		}
 		timeCreated = new Date(System.currentTimeMillis());
+	}
+	public SocketChannel getTCPConnection()
+	{
+		return TCPConnection;
 	}
 	public void setTCPConnection(SocketChannel TCPConnection)
 	{
@@ -217,4 +226,8 @@ public class PlayerConnection
 			return UDPConnection.
 		}
 	}*/
+	public void heartBeat()
+	{
+		lastUDPMessage = (new Date()).getTime();
+	}
 }

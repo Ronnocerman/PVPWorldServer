@@ -1,5 +1,6 @@
 package pvpworldserver;
 
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 public class NetworkProtocol 
@@ -8,6 +9,9 @@ public static final byte GAME_INFO = 1;
 	public static final byte GAME_INFO_HEARTBEAT = 0;//UDP 
 	public static final byte GAME_INFO_LOGIN = 1;//TCP VAR LENGTH
 	public static final byte GAME_INFO_LOGOUT = 2;//UDP
+	public static final byte GAME_INFO_MAP_REQUEST = 3;//TCP
+	public static final byte GAME_INFO_IMAGE = 4;
+	public static final byte GAME_INFO_IMAGESET_REQUEST = 5;
 
 public static final byte GAME_LOOKUP = 2;
 	public static final byte GAME_LOOKUP_PLAYER_ID = 0;//UDP
@@ -16,7 +20,6 @@ public static final byte GAME_LOOKUP = 2;
 	public static final byte GAME_LOOKUP_CHARACTER_NAME = 3;//UDP
 	public static final byte GAME_LOOKUP_MAP_ID = 4;//UDP
 	public static final byte GAME_LOOKUP_MAP_NAME = 5;//UDP
-	public static final byte GAME_LOOKUP_MAP_REQUEST = 6;//TCP
 
 public static final byte GAME_UPDATE = 3;
 	public static final byte GAME_UPDATE_PHYSICS = 0;//UDP
@@ -122,5 +125,40 @@ public static final byte GAME_REPORT = 9;
 		output[0] = (byte) ((input-(input%256))/256);
 		output[1] = (byte) (input%256);
 		return output;
+	}
+	public static byte[] longToBytes(long input)
+	{
+		ByteBuffer b = ByteBuffer.allocate(8);
+		b.putLong(input);
+		return b.array();
+	}
+	public static long bytesToLong(byte[] input)
+	{
+		if(input.length == 8)
+		{
+			ByteBuffer b =ByteBuffer.wrap(input);
+			return b.getLong();
+		}
+		return 0;
+	}
+	public static boolean IPsEqual(SocketAddress a,SocketAddress b)
+	{
+		String a1 = a.toString();
+		String b1 = b.toString();
+		for(int i = 0;i<a1.length();i++)
+		{
+			if(a1.substring(i,i+1).equals(":"))
+				a1 = a1.substring(0,i);
+		}
+		for(int i = 0;i<b1.length();i++)
+		{
+			if(b1.substring(i,i+1).equals(":"))
+				b1 = b1.substring(0,i);
+		}
+		if(a1.equals(b1))
+		{
+			return true;
+		}
+		return false;
 	}
 }

@@ -1,6 +1,7 @@
 package pvpworldserver;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -28,6 +29,7 @@ public class ServerDriver
 	static SocketChannel clientChannel = null;
 	static ServerSocket ss = null;
 	static Connection databaseConnection;
+	static ArrayList<Command> commandsOut;
 	
 	public static void main(String[]args)
 	{
@@ -70,7 +72,7 @@ public class ServerDriver
 			serverTCPChannel = ServerSocketChannel.open();
 			serverTCPChannel.configureBlocking(false);
 			ss = serverTCPChannel.socket();
-			ss.bind(new InetSocketAddress(5472));
+			ss.bind(new InetSocketAddress("localhost",5472));
 		} 
 		catch (IOException e) 
 		{
@@ -81,10 +83,9 @@ public class ServerDriver
 		{
 			serverUDPConChannel = DatagramChannel.open();
 			//serverUDPChannel = DatagramChannel.open();
-			serverUDPConChannel.configureBlocking(false);
 			//serverUDPChannel.configureBlocking(false);
-			serverUDPConChannel.socket().bind(new InetSocketAddress(5472));
-			serverUDPConChannel.connect(new InetSocketAddress("localhost",5473));
+			serverUDPConChannel.socket().bind(new InetSocketAddress("localhost",5472));
+			serverUDPConChannel.configureBlocking(false);
 		} 
 		catch (IOException e)
 		{
@@ -149,23 +150,29 @@ public class ServerDriver
 	{
 		SocketAddress connection = null;
 		ByteBuffer bb = ByteBuffer.allocate(65507);
-		bb.clear();
 		try 
 		{
-			connection = serverUDPConChannel.receive(bb);
-			System.out.println(connection==null);
-			while(connection!=null)
+			while((connection = serverUDPConChannel.receive(bb))!=null)
 			{
-				System.out.println("Not null");
+				bb.flip();
+				System.out.println("Packet Received");
+				for(int i = 0;i<bb.limit();i++)
+				{
+						System.out.println("Value " + i + ": " + bb.get(i));
+				}
+				if(bb.array()[0]==GAME_INFO&&bb.array()[1]==NetworkProtocol.GAME_INFO_HEARTBEAT)
 				for(int i = 0; i<attemptedConnections.size();i++)
 				{
-					System.out.println(attemptedConnections.get(i).toString());
-					System.out.println(connection.toString());
-					if(attemptedConnections.get(i).toString().equals(connection.toString()))
+					System.out.println("1: " + connection.toString());
+					System.out.println("2: " + attemptedConnections.get(i).getTCPConnection().socket().getRemoteSocketAddress().toString());
+					if(NetworkProtocol.IPsEqual(connection,attemptedConnections.get(i).getTCPConnection().socket().getRemoteSocketAddress()))
 					{
 						DatagramChannel d = DatagramChannel.open();
 						d.connect(connection);
 						attemptedConnections.get(i).setUDPConnection(d);
+						byte[] response= {(byte)1,(byte)2};
+						serverUDPConChannel.send(ByteBuffer.wrap(response),connection);
+						System.out.println("Equal"); 
 					}
 				}
 				bb.clear();
@@ -259,8 +266,9 @@ public class ServerDriver
 		{
 			switch(c.getCommandSpecific())
 			{
-			//case GAME_INFO_HEARTBEAT: GameInfo.processHeartbeat(c,pc);
+			case GAME_INFO_HEARTBEAT: GameInfo.processHeartbeat(c,pc);
 			case GAME_INFO_LOGIN: GameInfo.processLogin(c,pc);
+			case GAME_INFO_IMAGESET_REQUEST: GameInfo.processImageSetRequest(c,pc);
 			//case GAME_INFO_LOGOUT: GameInfo.processLogout(c,pc);
 			}
 		}

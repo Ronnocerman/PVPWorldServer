@@ -41,4 +41,16 @@ public class GameInfo
 			return false;
 		}
 	}
+	public static void processHeartbeat(Command c, PlayerConnection pc)
+	{
+		pc.heartBeat();
+	}
+	public static void processImageSetRequest(Command c,PlayerConnection pc)
+	{
+		if(c.getCommandBody().length == 8)
+		{
+			long requestedSet = NetworkProtocol.bytesToLong(c.getCommandBody());
+			
+		}
+	}
 }
