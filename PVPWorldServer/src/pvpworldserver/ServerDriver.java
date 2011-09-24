@@ -1,9 +1,7 @@
 package pvpworldserver;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
@@ -15,6 +13,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+
 import static pvpworldserver.NetworkProtocol.*;
 
 
@@ -38,10 +38,47 @@ public class ServerDriver
 	}
 	public static void setupConnections()
 	{
+		//connectDatabase();
+		openTCP();
+		openUDP();
+	}
+	public static void openTCP()
+	{
+		try 
+		{
+			serverTCPChannel = ServerSocketChannel.open();
+			serverTCPChannel.configureBlocking(false);
+			ss = serverTCPChannel.socket();
+			ss.bind(new InetSocketAddress("localhost",5472));
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+	public static void openUDP()
+	{
+		try
+		{
+			serverUDPConChannel = DatagramChannel.open();
+			//serverUDPChannel = DatagramChannel.open();
+			//serverUDPChannel.configureBlocking(false);
+			serverUDPConChannel.socket().bind(new InetSocketAddress("localhost",5472));
+			serverUDPConChannel.configureBlocking(false);
+		} 
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+	public static void connectDatabase()
+	{
 		try 
 		{
 			Class.forName("com.mysql.jdbc.Driver");
-			String databaseURL = "jdbc:mysql://localhost:3306/PVPWorld";
+			String databaseURL = "jdbc:mysql://76.219.184.137:3306/PVPWorld";
 			//Statement stmnt;
 			databaseConnection =DriverManager.getConnection(databaseURL,"PVPWorldServer", "WarePhant8");
 			 //stmnt = con.createStatement(); 
@@ -67,38 +104,13 @@ public class ServerDriver
 			e.printStackTrace();
 			System.exit(1);
 		}
-		try 
-		{
-			serverTCPChannel = ServerSocketChannel.open();
-			serverTCPChannel.configureBlocking(false);
-			ss = serverTCPChannel.socket();
-			ss.bind(new InetSocketAddress("localhost",5472));
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-		try
-		{
-			serverUDPConChannel = DatagramChannel.open();
-			//serverUDPChannel = DatagramChannel.open();
-			//serverUDPChannel.configureBlocking(false);
-			serverUDPConChannel.socket().bind(new InetSocketAddress("localhost",5472));
-			serverUDPConChannel.configureBlocking(false);
-		} 
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
 	}
 	public static void serverLoop()
 	{
 		while(true)
 		{
 			checkForNewConnections();
-			//checkUDPConnections();
+			checkUDPConnections();
 			checkTCPConnections();
 			//sendUDPResponses();
 			//sendTCPResponses();
@@ -154,8 +166,10 @@ public class ServerDriver
 		{
 			while((connection = serverUDPConChannel.receive(bb))!=null)
 			{
+				System.out.println("Position " + bb.position());
 				bb.flip();
 				System.out.println("Packet Received");
+				System.out.println("BB LIMIT: " + bb.limit());
 				for(int i = 0;i<bb.limit();i++)
 				{
 						System.out.println("Value " + i + ": " + bb.get(i));
@@ -168,15 +182,15 @@ public class ServerDriver
 					if(NetworkProtocol.IPsEqual(connection,attemptedConnections.get(i).getTCPConnection().socket().getRemoteSocketAddress()))
 					{
 						DatagramChannel d = DatagramChannel.open();
+						d.configureBlocking(false);
 						d.connect(connection);
 						attemptedConnections.get(i).setUDPConnection(d);
-						byte[] response= {(byte)1,(byte)2};
-						serverUDPConChannel.send(ByteBuffer.wrap(response),connection);
+						byte[] response= {GAME_INFO,GAME_INFO_HEARTBEAT};
+						d.write(ByteBuffer.wrap(response));
 						System.out.println("Equal"); 
 					}
 				}
 				bb.clear();
-				connection = serverUDPConChannel.receive(bb);
 			}
 		}
 		catch (IOException e) 
@@ -244,6 +258,38 @@ public class ServerDriver
 			{
 				playerConnections.remove(i);
 				--i;
+				continue;
+			}
+		}
+	}
+	public static void checkUDPConnections()
+	{
+		for(int i = 0;i<playerConnections.size();i++)
+		{
+			System.out.println("Checking UDP Connections at: "+ new Date().getTime());
+			//Create ByteBuffer
+			ByteBuffer b = ByteBuffer.allocate(65536);
+			b.clear();
+			//Read from Player Connection, if error, remove connection
+			try
+			{
+				if(playerConnections.get(i).receive(b)!=null)
+				{
+					System.out.println("Found Packet in connection!");
+					b.flip();
+					byte[] body = new byte[b.limit()];
+					for(int x = 0;x<b.limit();x++)
+					{
+						body[x] = b.array()[x];
+					}
+					processCommand(new Command(body),playerConnections.get(i));
+				}
+			}
+			catch(IOException e)
+			{
+				playerConnections.remove(i);
+				--i;
+				System.out.println("Exception");
 				continue;
 			}
 		}

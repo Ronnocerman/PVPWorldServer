@@ -1,8 +1,11 @@
 package pvpworldserver;
 
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Scanner;
+import static pvpworldserver.NetworkProtocol.*;
 
 public class GameInfo 
 {
@@ -47,10 +50,46 @@ public class GameInfo
 	}
 	public static void processImageSetRequest(Command c,PlayerConnection pc)
 	{
+		System.out.println("7");
 		if(c.getCommandBody().length == 8)
 		{
+			System.out.println("6");
 			long requestedSet = NetworkProtocol.bytesToLong(c.getCommandBody());
-			
+			File directory = new File("C:/Documents and Settings/Conner/My Documents/ImageSets");
+			String[] fileList = directory.list();
+			for(int i = 0;i<fileList.length;i++)
+			{
+				System.out.println("5");
+				if(fileList[i].equals(""+requestedSet))
+				{
+					System.out.println("4");
+					Scanner in = new Scanner(directory.getAbsolutePath()+fileList[i]);
+					while(in.hasNextLine())
+					{
+						System.out.println("3");
+						String a = in.nextLine();
+						if(in.hasNextLine())
+						{
+							System.out.println("2");
+							String b = in.nextLine();
+							byte[] output = new byte[10+b.getBytes().length];
+							output[0] = GAME_INFO;
+							output[1] = NetworkProtocol.GAME_INFO_IMAGE_LOCATION;
+							for(int x = 0;x<8;x++)
+							{
+								output[x+2] = NetworkProtocol.longToBytes(Long.parseLong(a))[x];
+							}
+							for(int x = 0;x<b.getBytes().length;x++)
+							{
+								output[10+x] = b.getBytes()[x];
+							}
+							pc.sendUDPMessage(output);
+							System.out.println("1");
+						}
+					}
+					break;
+				}
+			}
 		}
 	}
 }

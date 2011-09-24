@@ -1,5 +1,6 @@
 package pvpworldserver;
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
@@ -11,13 +12,9 @@ public class PlayerConnection
 	private int playerID;
 	private Character loggedCharacter;
 	private SocketChannel TCPConnection = null;
-	private String TCPConnectionIP = "";
-	private int TCPConnectionPort = 0;
 	private DatagramChannel UDPConnection = null;
-	private String UDPConnectionIP = "";
-	private int UDPConnectionPort = 0;
 	private Date timeCreated;
-	private long lastUDPMessage;
+	private long timeSinceLastUDP;
 	private byte[] incompleteSend = new byte[0];
 	private ArrayList<Command> commands = new ArrayList<Command>();
 	public PlayerConnection(SocketChannel TCPConnection)
@@ -58,7 +55,18 @@ public class PlayerConnection
 	public void setUDPConnection(DatagramChannel UDPConnection)
 	{
 		if(this.UDPConnection == null)
-		this.UDPConnection = UDPConnection;
+		{
+			if(UDPConnection.isBlocking())
+			{
+				try {
+					UDPConnection.configureBlocking(false);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			this.UDPConnection = UDPConnection;
+		}
 	}
 	public void setPlayerID(int id)
 	{
@@ -228,6 +236,32 @@ public class PlayerConnection
 	}*/
 	public void heartBeat()
 	{
-		lastUDPMessage = (new Date()).getTime();
+		timeSinceLastUDP = (new Date()).getTime();
+	}
+	public void sendUDPMessage(byte[] output)
+	{
+		if(hasUDPConnection())
+		{
+			try 
+			{
+				UDPConnection.write(ByteBuffer.wrap(output));
+				System.out.println("UDP Message Sent");
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+	public SocketAddress receive(ByteBuffer b) throws IOException
+	{
+		SocketAddress output;
+		if((output = UDPConnection.receive(b))!=null)
+			heartBeat();
+		return output;
+	}
+	public long lastUDP()
+	{
+		return timeSinceLastUDP;
 	}
 }

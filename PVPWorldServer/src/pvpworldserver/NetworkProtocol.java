@@ -12,6 +12,7 @@ public static final byte GAME_INFO = 1;
 	public static final byte GAME_INFO_MAP_REQUEST = 3;//TCP
 	public static final byte GAME_INFO_IMAGE = 4;
 	public static final byte GAME_INFO_IMAGESET_REQUEST = 5;
+	public static final byte GAME_INFO_IMAGE_LOCATION = 6;
 
 public static final byte GAME_LOOKUP = 2;
 	public static final byte GAME_LOOKUP_PLAYER_ID = 0;//UDP
