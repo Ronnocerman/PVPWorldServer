@@ -1,4 +1,6 @@
 package pvpworldserver;
+import static pvpworldserver.NetworkProtocol.*;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -61,7 +63,6 @@ public class PlayerConnection
 				try {
 					UDPConnection.configureBlocking(false);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -238,6 +239,33 @@ public class PlayerConnection
 	{
 		timeSinceLastUDP = (new Date()).getTime();
 	}
+	public void sendMessage(byte[] output)
+	{
+		if(output[0] == GAME_INFO)
+		{
+			switch(output[1])
+			{
+			case GAME_INFO_HEARTBEAT: sendUDPMessage(output);break;
+			case GAME_INFO_LOGIN: sendTCPMessage(output);break;
+			case GAME_INFO_LOGOUT: sendTCPMessage(output);sendUDPMessage(output);break;
+			case GAME_INFO_MAP_REQUEST: sendTCPMessage(output);break;
+			case GAME_INFO_IMAGESET_REQUEST: sendUDPMessage(output);break; //Change back to TCP
+			case GAME_INFO_IMAGE_LOCATION: sendUDPMessage(output);break;
+			default: System.out.println("Network Message Send Fail");
+			}
+		}
+		if(output[0] == GAME_LOOKUP)
+		{
+			switch(output[1])
+			{
+			case GAME_LOOKUP_PLAYER_ID: sendUDPMessage(output);break;
+			case GAME_LOOKUP_PLAYER_NAME: sendUDPMessage(output);break;
+			case GAME_LOOKUP_CHARACTER_ID: sendUDPMessage(output);break;
+			case GAME_LOOKUP_CHARACTER_NAME: sendUDPMessage(output);break;
+			default: System.out.println("Network Message Send Fail");
+			}
+		}
+	}
 	public void sendUDPMessage(byte[] output)
 	{
 		if(hasUDPConnection())
@@ -251,6 +279,14 @@ public class PlayerConnection
 			{
 				e.printStackTrace();
 			}
+		}
+	}
+	public void sendTCPMessage(byte[] output)
+	{
+		try {
+			TCPConnection.write(ByteBuffer.wrap(output));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	public SocketAddress receive(ByteBuffer b) throws IOException

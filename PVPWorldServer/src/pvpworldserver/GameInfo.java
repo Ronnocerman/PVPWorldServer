@@ -1,9 +1,11 @@
 package pvpworldserver;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
 import static pvpworldserver.NetworkProtocol.*;
 
@@ -55,7 +57,7 @@ public class GameInfo
 		{
 			System.out.println("6");
 			long requestedSet = NetworkProtocol.bytesToLong(c.getCommandBody());
-			File directory = new File("C:/Documents and Settings/Conner/My Documents/ImageSets");
+			File directory = new File("C:/Documents and Settings/Connor/My Documents/ImageSets/");
 			String[] fileList = directory.list();
 			for(int i = 0;i<fileList.length;i++)
 			{
@@ -63,7 +65,14 @@ public class GameInfo
 				if(fileList[i].equals(""+requestedSet))
 				{
 					System.out.println("4");
-					Scanner in = new Scanner(directory.getAbsolutePath()+fileList[i]);
+					Scanner in;
+					try {
+						in = new Scanner(new File(directory.getAbsolutePath()+"\\" + fileList[i]));
+					} catch (FileNotFoundException e) {
+						in = null;
+						e.printStackTrace();
+					}
+					
 					while(in.hasNextLine())
 					{
 						System.out.println("3");
@@ -83,7 +92,7 @@ public class GameInfo
 							{
 								output[10+x] = b.getBytes()[x];
 							}
-							pc.sendUDPMessage(output);
+							pc.sendMessage(output);
 							System.out.println("1");
 						}
 					}
