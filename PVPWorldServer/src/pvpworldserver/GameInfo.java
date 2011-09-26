@@ -72,11 +72,12 @@ public class GameInfo
 						in = null;
 						e.printStackTrace();
 					}
-					
+					ArrayList<Long> imageIDs = new ArrayList<Long>();
 					while(in.hasNextLine())
 					{
 						System.out.println("3");
 						String a = in.nextLine();
+						imageIDs.add(Long.parseLong(a));
 						if(in.hasNextLine())
 						{
 							System.out.println("2");
@@ -96,6 +97,18 @@ public class GameInfo
 							System.out.println("1");
 						}
 					}
+					byte[] output = new byte[2+(imageIDs.size()*8)];
+					output[0] = GAME_INFO;
+					output[1] = GAME_INFO_IMAGESET_REQUEST;
+					for(int x = 0;x<imageIDs.size();x++)
+					{
+						for(int y = 0;y<8;y++)
+						{
+							output[2+(x*8)+y] = longToBytes(imageIDs.get(x).longValue())[y];
+						}
+					}
+					System.out.println("Sent Image Set");
+					pc.sendMessage(output);
 					break;
 				}
 			}

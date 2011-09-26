@@ -266,6 +266,7 @@ public class PlayerConnection
 			}
 		}
 	}
+	
 	public void sendUDPMessage(byte[] output)
 	{
 		if(hasUDPConnection())

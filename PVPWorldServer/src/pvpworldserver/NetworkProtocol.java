@@ -162,4 +162,41 @@ public static final byte GAME_REPORT = 9;
 		}
 		return false;
 	}
+	public static byte[] resizeByteArray(byte[] input, int startIndex, int endIndex)
+	{
+		  if(startIndex > endIndex)
+		  {
+		   //swap
+		   startIndex ^= endIndex;
+		   endIndex ^= startIndex;
+		   startIndex ^= endIndex;
+		  }
+		  
+		  byte[] output = new byte[endIndex-startIndex+1];
+		  int curIndex = 0;
+		  
+		  if(startIndex < 0)
+		  {
+		   for(int j = 0; j < startIndex*(0-1) && curIndex < output.length;
+		     curIndex++, j++)
+		     output[curIndex] = 0;
+		   
+		  }
+		  
+		  for(int j = startIndex+curIndex;
+		    j < input.length && j <= endIndex && curIndex < output.length;
+		    curIndex++, j++)
+		  {
+		   output[curIndex] = input[j];
+		  }
+		  
+		  if(endIndex >= input.length)
+		  {
+		   for(int j = input.length; j < endIndex && curIndex < output.length;
+		     j++, curIndex++)
+		    output[curIndex] = 0;
+		  }
+		  
+		  return output;
+		}
 }
