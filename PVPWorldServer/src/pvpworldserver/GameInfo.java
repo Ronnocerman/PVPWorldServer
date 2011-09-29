@@ -113,5 +113,15 @@ public class GameInfo
 				}
 			}
 		}
+		else
+		{
+			(new Exception()).printStackTrace();
+			System.out.print("Imageset Command: ");
+			for(int i = 0;i<c.getCommandBody().length;i++)
+			{
+				System.out.print(","+c.getCommandBody()[i]);
+			}
+			System.out.println();
+		}
 	}
 }
