@@ -282,7 +282,7 @@ public class ServerDriver
 					{
 						body[x] = b.array()[x];
 					}
-					processCommand(new Command(body),playerConnections.get(i));
+					processCommand(new UDPCommand(body),playerConnections.get(i));
 				}
 			}
 			catch(IOException e)

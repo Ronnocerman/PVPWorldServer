@@ -15,19 +15,14 @@ public class GameInfo
 	{
 		try 
 		{
-			byte[] accountNameBytes = new byte[c.getCommandBody().length-20];
-			for(int i = 20;i<c.getCommandBody().length;i++)
-			{
-				accountNameBytes[i-20] = c.getCommandBody()[i];
-			}
-			String accountName = new String(accountNameBytes);
+			String accountName = new String(c.getParameter(1));
 			Statement readLogin = ServerDriver.databaseConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
 			ResultSet rs = readLogin.executeQuery("SELECT * from userpasswords WHERE userID = " + GameLookup.lookupAccountID(accountName) + ";");
 			rs.next();
 			byte[] retrievedPassword = rs.getBytes("encryptedpassword");
 			for(int i = 0;i<retrievedPassword.length;i++)
 			{
-				if(retrievedPassword[i]==c.getCommandBody()[i])
+				if(retrievedPassword[i]==c.getParameter(0)[i])
 				{
 					continue;
 				}
@@ -53,10 +48,10 @@ public class GameInfo
 	public static void processImageSetRequest(Command c,PlayerConnection pc)
 	{
 		System.out.println("7");
-		if(c.getCommandBody().length == 8)
+		if(c.getParameter(0).length == 8)
 		{
 			System.out.println("6");
-			long requestedSet = NetworkProtocol.bytesToLong(c.getCommandBody());
+			long requestedSet = NetworkProtocol.bytesToLong(c.getParameter(0));
 			File directory = new File("C:/Documents and Settings/Connor/My Documents/ImageSets/");
 			String[] fileList = directory.list();
 			for(int i = 0;i<fileList.length;i++)
@@ -117,9 +112,9 @@ public class GameInfo
 		{
 			(new Exception()).printStackTrace();
 			System.out.print("Imageset Command: ");
-			for(int i = 0;i<c.getCommandBody().length;i++)
+			for(int i = 0;i<c.getParameter(0).length;i++)
 			{
-				System.out.print(","+c.getCommandBody()[i]);
+				System.out.print(","+c.getParameter(0)[i]);
 			}
 			System.out.println();
 		}

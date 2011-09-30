@@ -183,9 +183,9 @@ public class PlayerConnection
 		byte[] testSize = new byte[2];
 		testSize[0] = incompleteSend[2];
 		testSize[1] = incompleteSend[3];
-		if(incompleteSend.length >= NetworkProtocol.twoBytesToInt(testSize))
+		if(incompleteSend.length >= NetworkProtocol.bytesToInt(testSize))
 		{
-			byte[] commandData = new byte[NetworkProtocol.twoBytesToInt(testSize)];
+			byte[] commandData = new byte[NetworkProtocol.bytesToInt(testSize)];
 			for(int i = 0;i<commandData.length;i++)
 			{
 				commandData[i] = incompleteSend[i];
@@ -196,7 +196,7 @@ public class PlayerConnection
 			{
 				incompleteSend[i] = tempData[commandData.length+i];
 			}
-			commands.add(new Command(commandData));
+			commands.add(new TCPCommand(commandData));
 			testDataLength();
 		}
 	}
