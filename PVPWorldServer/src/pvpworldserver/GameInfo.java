@@ -47,19 +47,21 @@ public class GameInfo
 	}
 	public static void processImageSetRequest(Command c,PlayerConnection pc)
 	{
-		System.out.println("7");
 		if(c.getParameter(0).length == 8)
 		{
-			System.out.println("6");
+			//Parses for the long of the requested set
 			long requestedSet = NetworkProtocol.bytesToLong(c.getParameter(0));
+			//Directory containing the ImageSet files
 			File directory = new File("C:/Documents and Settings/Connor/My Documents/ImageSets/");
+			//List of files in the directory
 			String[] fileList = directory.list();
+			//Parses through list to find the correct ImageSet
 			for(int i = 0;i<fileList.length;i++)
 			{
-				System.out.println("5");
+				//If the file matches the requested Long
 				if(fileList[i].equals(""+requestedSet))
 				{
-					System.out.println("4");
+					//Create new scanner for the ImageSet file
 					Scanner in;
 					try {
 						in = new Scanner(new File(directory.getAbsolutePath()+"\\" + fileList[i]));
@@ -67,42 +69,28 @@ public class GameInfo
 						in = null;
 						e.printStackTrace();
 					}
+					//ArrayList of the IDs
 					ArrayList<Long> imageIDs = new ArrayList<Long>();
+					//Parse through the required images
 					while(in.hasNextLine())
 					{
-						System.out.println("3");
+						//a = the long represented by the next URL in the next line
 						String a = in.nextLine();
 						imageIDs.add(Long.parseLong(a));
 						if(in.hasNextLine())
 						{
-							System.out.println("2");
+							//b = the URL of the required image
 							String b = in.nextLine();
-							byte[] output = new byte[10+b.getBytes().length];
-							output[0] = GAME_INFO;
-							output[1] = NetworkProtocol.GAME_INFO_IMAGE_LOCATION;
-							for(int x = 0;x<8;x++)
-							{
-								output[x+2] = NetworkProtocol.longToBytes(Long.parseLong(a))[x];
-							}
-							for(int x = 0;x<b.getBytes().length;x++)
-							{
-								output[10+x] = b.getBytes()[x];
-							}
+							//output = ImageID + ImageURL
+							UDPCommand output = new UDPCommand(GAME_INFO,GAME_INFO_IMAGE_LOCATION,longToBytes(Long.parseLong(a)),b.getBytes());
+							//send the required image's URL
 							pc.sendMessage(output);
-							System.out.println("1");
 						}
 					}
-					byte[] output = new byte[2+(imageIDs.size()*8)];
-					output[0] = GAME_INFO;
-					output[1] = GAME_INFO_IMAGESET_REQUEST;
+					byte[][] outputLongs = new byte[imageIDs.size()][];
 					for(int x = 0;x<imageIDs.size();x++)
-					{
-						for(int y = 0;y<8;y++)
-						{
-							output[2+(x*8)+y] = longToBytes(imageIDs.get(x).longValue())[y];
-						}
-					}
-					System.out.println("Sent Image Set");
+						outputLongs[x] = longToBytes(imageIDs.get(x));
+					UDPCommand output = new UDPCommand(GAME_INFO,GAME_INFO_IMAGESET_REQUEST,outputLongs);
 					pc.sendMessage(output);
 					break;
 				}

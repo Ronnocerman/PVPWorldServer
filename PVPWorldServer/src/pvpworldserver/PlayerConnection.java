@@ -1,5 +1,4 @@
 package pvpworldserver;
-import static pvpworldserver.NetworkProtocol.*;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -239,41 +238,25 @@ public class PlayerConnection
 	{
 		timeSinceLastUDP = (new Date()).getTime();
 	}
-	public void sendMessage(byte[] output)
+	public void sendMessage(Command output)
 	{
-		if(output[0] == GAME_INFO)
+		if(output instanceof UDPCommand)
 		{
-			switch(output[1])
-			{
-			case GAME_INFO_HEARTBEAT: sendUDPMessage(output);break;
-			case GAME_INFO_LOGIN: sendTCPMessage(output);break;
-			case GAME_INFO_LOGOUT: sendTCPMessage(output);sendUDPMessage(output);break;
-			case GAME_INFO_MAP_REQUEST: sendTCPMessage(output);break;
-			case GAME_INFO_IMAGESET_REQUEST: sendUDPMessage(output);break; //Change back to TCP
-			case GAME_INFO_IMAGE_LOCATION: sendUDPMessage(output);break;
-			default: System.out.println("Network Message Send Fail");
-			}
+			sendUDPMessage((UDPCommand) output);
 		}
-		if(output[0] == GAME_LOOKUP)
+		else if(output instanceof TCPCommand)
 		{
-			switch(output[1])
-			{
-			case GAME_LOOKUP_PLAYER_ID: sendUDPMessage(output);break;
-			case GAME_LOOKUP_PLAYER_NAME: sendUDPMessage(output);break;
-			case GAME_LOOKUP_CHARACTER_ID: sendUDPMessage(output);break;
-			case GAME_LOOKUP_CHARACTER_NAME: sendUDPMessage(output);break;
-			default: System.out.println("Network Message Send Fail");
-			}
+			sendTCPMessage((TCPCommand) output);
 		}
 	}
 	
-	public void sendUDPMessage(byte[] output)
+	public void sendUDPMessage(UDPCommand output)
 	{
 		if(hasUDPConnection())
 		{
 			try 
 			{
-				UDPConnection.write(ByteBuffer.wrap(output));
+				UDPConnection.write(ByteBuffer.wrap(output.toBytes()));
 				System.out.println("UDP Message Sent");
 			} 
 			catch (IOException e) 
@@ -282,10 +265,11 @@ public class PlayerConnection
 			}
 		}
 	}
-	public void sendTCPMessage(byte[] output)
+	public void sendTCPMessage(TCPCommand output)
 	{
 		try {
-			TCPConnection.write(ByteBuffer.wrap(output));
+			TCPConnection.write(ByteBuffer.wrap(output.toBytes()));
+			System.out.println("TCP Message Sent");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

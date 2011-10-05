@@ -23,20 +23,28 @@ public abstract class Command
 	}
 	private boolean singleDimensionToDouble(byte[] data)
 	{
+		for(int i = 0;i<data.length;i++)
+			System.out.print(data[i] + ",");
+		System.out.println();
 		ArrayList<byte[]> parameters = new ArrayList<byte[]>();
 		if(data.length>=2)
 		{
+			System.out.println("Parsing Data.");
 			for(int i = 0;i+1<data.length;)
 			{
+				System.out.println("Next Parameter");
 				byte[] byteLength = new byte[2];
 				byteLength[0] = data[i];
 				byteLength[1] = data[i+1];
 				short paramLength = bytesToShort(byteLength);
+				System.out.println("Parameter Length: " + paramLength);
 				if(data.length-i >=paramLength)
 				{
 					byte[] parameter = new byte[paramLength];
+					System.out.println("I: " + i);
 					for(int x = 0;x<paramLength;x++)
 					{
+						System.out.println("X: " + x);
 						parameter[x] = data[i+2+x];
 					}
 					parameters.add(parameter);
@@ -45,6 +53,7 @@ public abstract class Command
 				{
 					return false;
 				}
+				i += 2 + paramLength;
 			}
 		}
 		else
